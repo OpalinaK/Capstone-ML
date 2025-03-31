@@ -100,9 +100,29 @@ def extract_important(s):
     match = re.search(r'([A-Z]\d+)', s)
     return match.group(0) if match else None
 
-def process_image(image_path="image5.jpg"):
+def decide_gate(final_destination, text):
+    if final_destination in text:
+        return True
+    
+    gate_match = re.match(r'([A-Z])(\d+)', final_destination)
+    range_match = re.search(r'([A-Z])(\d+)-(?:[A-Z])?(\d+)', text)
+
+    if gate_match and range_match:
+        gate_letter, gate_number = gate_match.group(1), int(gate_match.group(2))
+        range_letter, start_num, end_num = range_match.group(1), int(range_match.group(2)), int(range_match.group(3))
+
+        if gate_letter == range_letter and start_num <= gate_number <= end_num:
+            return True
+    return False
+
+
+def process_image(image_path="Image1.jpg"):
     global final_destination
-    final_destination = "Gate D64"
+    final_destination = "Gate D70"
+    # Image1: Testing for Gate D64 - 87
+    # Image2: Testing for Gate A18 - 34
+    # Image3: Testing for Gate D32 - 49
+
     final_destination = extract_important(final_destination)
     if final_destination is None:
         print("failed")
@@ -149,7 +169,8 @@ def process_image(image_path="image5.jpg"):
     with destination_lock:
         if final_destination:
             for text, box in final_group:
-                if final_destination in text:
+                print(text)
+                if decide_gate(final_destination, text):
                     destination_box = box
                     print(f"Final Destination Box: {box}")
                     break
@@ -183,9 +204,8 @@ def process_image(image_path="image5.jpg"):
     tts_engine.runAndWait()
 
     # Display Image
-    cv2.imshow("Detected Signs", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite("output.jpg", image)
+
 
 
 # Multithreading
